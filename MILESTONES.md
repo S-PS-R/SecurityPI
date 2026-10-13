@@ -17,7 +17,7 @@ Develop on Windows laptops, push implementation milestones to GitHub, and deploy
 - Sense HAT V2 installed, with a fan on the main board.
 - Camera looking outside through a window.
 - iPhone companion; Windows-only development computers, no Mac available.
-- User has provided GitHub access and authorized implementation pushes. Identify the intended repository/remote when implementation starts.
+- User has provided GitHub access and authorized public implementation pushes to `S-PS-R/SecurityPI`.
 
 The Pi must capture, analyze, and record without the development PC or internet. Push delivery requires internet. Remote viewing requires connectivity to the Pi. Hardware gates stay pending until tested on the Pi and iPhone; Windows/Linux CI cannot establish ARM camera support, thermal behavior, or Safari compatibility.
 
@@ -79,7 +79,7 @@ Expose CPU/RAM/temperature/throttling, disk usage, frame age, and inference age.
 
 ## GitHub push policy
 
-Each milestone is a coherent push with focused commits, relevant passing checks, updated instructions, and evidence recorded below. GitHub implementation pushes are authorized; resolve the intended remote first. Milestone 1 implements the local foundation; hardware features remain pending.
+Each milestone is a coherent push with focused commits, relevant passing checks, updated instructions, and evidence recorded below. GitHub implementation pushes to `S-PS-R/SecurityPI` are authorized. Milestone 1 implements the local foundation; hardware features remain pending.
 
 Exclude credentials, device tokens, recordings, databases, virtual environments, and generated artifacts from Git. Use generated or explicitly shareable fixtures; no private footage in CI artifacts. Pin sources and record model/dependency licenses. Hardware-dependent work may be pushed as a candidate but remains incomplete until hardware checks pass.
 
@@ -102,7 +102,7 @@ Exclude credentials, device tokens, recordings, databases, virtual environments,
 - [x] Choose Python 3.12 (foundation supports 3.11–3.13); pin runtime/test requirements and document separate Pi setup. Node is unnecessary for the accepted app approach.
 - [x] Add CLI, config validation, JSON logging, and local FastAPI health/status foundation.
 - [x] Complete fresh Windows environment checks: 15 tests, lint/format, CLI, dependency consistency, and real localhost HTTP smoke test.
-- [ ] Verify Windows/Linux GitHub Actions runs after push.
+- [x] Verify Windows/Linux GitHub Actions: all four Python 3.11/3.12 jobs passed for `19958b9` ([run](https://github.com/S-PS-R/SecurityPI/actions/runs/38332248340)).
 - **Acceptance:** fresh Windows setup and CLI work; invalid config fails clearly without secret values; lint/tests/CI pass without hardware or credentials. Home Assistant integration documentation replaces the custom PWA shell/build criterion.
 - **Commit:** `chore: scaffold Python foundation and Home Assistant integration plan`
 
@@ -220,6 +220,7 @@ Retain GPT-6.1 Sol with medium reasoning as proposed default; Luna for scoped ro
 
 | Push | Commit/tag | Checks/result | PC/Pi/iPhone evidence | Status |
 | --- | --- | --- | --- | --- |
-| 0 | Pending | Revised roadmap and confirmed hardware | Document only; not pushed | Drafted |
+| 0 | `19958b9` | Roadmap/assessment included in initial push | Confirmed equipment documented | Published |
+| 1 | `19958b9` | Clean install, 15 tests, lint/format, dependency/CLI/HTTP checks; all four CI jobs passed | Windows local; Windows/Ubuntu CI, Python 3.11/3.12; no Pi/iPhone execution | Complete |
 
-Next implementation task: resume milestone 1 using the assessed components. Public `S-PS-R/SecurityPI` is authorized; creation/push remains pending. Home Assistant is selected; retain hardware acceptance gates.
+Next implementation task: milestone 2 — USB capture and window feasibility. Home Assistant is selected; retain Pi/iPhone hardware acceptance gates. See [docs/verification.md](docs/verification.md) for milestone 1 evidence.

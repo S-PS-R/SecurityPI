@@ -1,6 +1,6 @@
 # SecurityPI: established tools, APIs, CLIs, and MCP assessment
 
-Checked October 12, 2026. Research only: no project dependencies installed, no code scaffold created, and no repository created or pushed. Public `S-PS-R/SecurityPI` creation is authorized for the subsequent implementation.
+Checked October 12, 2026. This assessment was completed before installing project dependencies or creating/pushing the code repository. Milestone 1 has since been implemented in public `S-PS-R/SecurityPI`; see [the verification record](docs/verification.md) for current results.
 
 ## Accepted architecture (October 12, 2026)
 
@@ -75,4 +75,4 @@ If Frigate is selected, reuse its tracking, zones, recording, and event interfac
 4. Check relevant upstream release notes/advisories for the pinned release. Add only the component needed by the current milestone, then smoke-test it. No framework gets admitted solely because it has many stars.
 5. Benchmark on the actual Pi before production selection. Accelerator purchases, OS changes, and a second always-on inference machine are not assumed.
 
-Research is complete; application architecture is still provisional. Resolve existing phone app versus custom UI, then adapt milestone 1 and resume implementation in the authorized public repository.
+The user accepted Home Assistant as the phone interface after this assessment. Milestone 1's lightweight Python foundation is now implemented; inference/media choices still require target-device verification at the relevant milestones.

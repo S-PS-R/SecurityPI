@@ -16,7 +16,14 @@ October 12, 2026 (America/New_York).
 - CI uses GitHub's official checkout/setup-python actions pinned to verified
   release commit SHAs. Four jobs cover Windows/Ubuntu and Python 3.11/3.12.
 
-Remote CI outcome will be recorded after the first push. Local sandbox restrictions
+Remote CI passed on all four jobs for code commit
+[`19958b9`](https://github.com/S-PS-R/SecurityPI/commit/19958b91fb9812e545633d4b88144351fb017979):
+Ubuntu/Windows with Python 3.11 and 3.12, each running installation, dependency
+consistency, lint/format, all 15 tests, CLI help, and example-config validation.
+See [the verified Actions run](https://github.com/S-PS-R/SecurityPI/actions/runs/38332248340).
+The following documentation-only completion commit does not change tested code.
+
+Local sandbox restrictions
 prevented some temporary-file/thread/socket operations; the same commands passed
 with authorized execution outside that sandbox. This is an execution-environment
 constraint, not a change to the application or its OS requirements.
