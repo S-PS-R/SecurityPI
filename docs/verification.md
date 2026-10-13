@@ -28,5 +28,24 @@ prevented some temporary-file/thread/socket operations; the same commands passed
 with authorized execution outside that sandbox. This is an execution-environment
 constraint, not a change to the application or its OS requirements.
 
-No Pi, webcam, Sense HAT, Home Assistant, or iPhone behavior has been verified in
-this milestone. Those features are deliberately absent from the implementation.
+No Pi, webcam, Sense HAT, Home Assistant, or iPhone behavior was verified in
+milestone 1. See the milestone 2 section below for subsequent Windows camera checks.
+
+## Milestone 2 candidate
+
+October 12, 2026 (America/New_York), Windows x64/Python 3.12.14.
+
+- Added headless OpenCV 4.14.0.94 and NumPy 2.4.6 from verified PyPI releases.
+- 26 portable tests passed, including actual generated MJPEG video decoding/EOF,
+  source ownership, retry limits, blocked worker open/read, reconnect sequence,
+  local artifact isolation, and partial interruption. Lint/format and `pip check` passed.
+- Windows device identity: Logitech c922 Pro Stream Webcam. Driver-supported modes
+  enumerated with the existing FFmpeg DirectShow CLI.
+- Real capture: 30 frames at 1280×720, approximately 9.98 delivered frame-interval
+  FPS, no reconnects. Startup-inclusive rate is lower; see [capture details](capture.md).
+- Missing camera index: three failed attempts and expected exit code 2.
+- Private samples remain inside ignored `data/`. No camera photo is published.
+- Pi capture/performance, physical unplug/replug, and final day/night window view
+  are pending. This is a candidate push, not full hardware acceptance.
+
+Remote CI results will be added after pushing this candidate.

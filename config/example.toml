@@ -1,5 +1,5 @@
 # Copy to local.toml for personal settings. Paths are relative to this file.
-# The foundation does not capture video or connect to Home Assistant yet.
+# `capture` opens a source; `serve` is still only the foundation API.
 name = "SecurityPI"
 log_level = "INFO"
 
@@ -14,6 +14,12 @@ device_index = 0
 width = 640
 height = 480
 fps = 10
+backend = "auto"
+io_timeout_seconds = 10.0
+reconnect_attempts = 2
+reconnect_delay_seconds = 1.0
+# Optional USB format request: fourcc = "MJPG"
+# For local file input: source = "video", video_path = "../data/sample.avi"
 
 [storage]
 directory = "../data"

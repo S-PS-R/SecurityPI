@@ -1,0 +1,16 @@
+# Logitech c922 capture candidate. Actual capabilities differ across drivers/hosts.
+# Keep the webcam closed in other applications while running this smoke test.
+[camera]
+source = "usb"
+device_index = 0
+backend = "auto"
+fourcc = "MJPG"
+width = 1280
+height = 720
+fps = 10
+io_timeout_seconds = 10.0
+reconnect_attempts = 2
+reconnect_delay_seconds = 1.0
+
+[storage]
+directory = "../data"

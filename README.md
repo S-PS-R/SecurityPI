@@ -5,10 +5,11 @@ The official Home Assistant iPhone app will provide the dashboard, controls,
 live viewing, and notifications. Python handles our camera analysis and rules;
 established media/inference components will be added when their milestones need them.
 
-**Milestone 1 is a runnable foundation, not an operating security camera.** It
-validates configuration and serves process health/status. Camera capture, person
-and vehicle detection, recordings, Home Assistant connections, and phone alerts
-are not implemented yet. Parking status is explicitly unknown.
+**Milestone 2 adds portable capture diagnostics.** Synthetic frames, local video
+files, and USB webcams share a timestamped frame-source interface. Capture commands
+can save explicitly requested local snapshots and JSON reports. Person/vehicle
+detection, security recordings, live streaming, Home Assistant connections, and
+phone alerts are later milestones. Pi/window checks remain pending.
 
 ## Requirements
 
@@ -58,10 +59,40 @@ only; network access/authentication is a later milestone.
 .venv\Scripts\python.exe -m pip check
 ```
 
-Tests cover invalid configuration and secret-value suppression, relative paths,
-CLI exit codes, health versus monitoring status, and structured logs. GitHub
-Actions runs the same foundation checks on Windows and Ubuntu. Hardware acceptance
+Tests cover configuration/CLI behavior, source timestamps/ownership, real generated
+video decoding/EOF, blocked native calls, reconnect budgets, interruption cleanup,
+and safe artifact paths. GitHub Actions runs portable checks on Windows and Ubuntu,
+with generated video and synthetic input; it does not open a camera. Hardware acceptance
 is tracked separately in [MILESTONES.md](MILESTONES.md).
+
+## Capture smoke tests (milestone 2)
+
+Install the updated requirements using the Windows setup commands above. Close
+other applications using the webcam, then run:
+
+```powershell
+# Hardware-free test
+.venv\Scripts\python.exe -m securitypi capture --config config/example.toml --frames 30 --snapshot data/synthetic.jpg
+
+# One frame plus negotiated camera information; no image saved
+.venv\Scripts\python.exe -m securitypi camera-info --config config/usb.example.toml
+
+# Logitech candidate settings, last frame saved locally
+.venv\Scripts\python.exe -m securitypi capture --config config/usb.example.toml --frames 30 --snapshot data/usb-check.jpg --report data/usb-check.json
+
+# Local video file, stop on EOF or frame limit
+.venv\Scripts\python.exe -m securitypi capture --config config/example.toml --video data/sample.avi --frames 300
+```
+
+Open `data/usb-check.jpg` to inspect the image and `data/usb-check.json` for results.
+Artifacts stay inside configured storage (`data/` by default) and are ignored by Git.
+No snapshot/report is saved unless requested. `--frames 0` runs until Ctrl+C and
+returns exit code 130 after releasing the source. Exit code 2 indicates failure.
+
+The `capture` command is a separate diagnostic process. `serve` still exposes the
+foundation API; its status does not reflect a separate capture command and never
+claims that monitoring, inference, or parking assessment is running. See
+[capture details](docs/capture.md) and [window/hardware acceptance](docs/window-validation.md).
 
 ## Configuration and credentials
 

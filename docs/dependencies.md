@@ -1,4 +1,4 @@
-# Milestone 1 dependency decisions
+# Dependency decisions (milestones 1–2)
 
 Direct packages are pinned in `pyproject.toml`; the resolved runtime/test sets are
 in `requirements/`. Install the requirements before installing this project with
@@ -15,9 +15,16 @@ These are version constraints, not a cryptographic artifact lock.
 | pytest | Behavioral checks | MIT; [official project](https://github.com/pytest-dev/pytest) |
 | Ruff | Lint and formatting | MIT; [official project](https://github.com/astral-sh/ruff) |
 | setuptools | Package/CLI installation | MIT; [official project](https://github.com/pypa/setuptools) |
+| opencv-python-headless 4.14.0.94 | USB/file capture and snapshot encoding without GUI dependencies | Packaging MIT; OpenCV Apache-2.0; embedded libraries retain their licenses; [upstream guidance](https://github.com/opencv/opencv-python#licensing) |
+| NumPy 2.4.6 | Frame arrays / synthetic sources | BSD-3-Clause; [official license](https://numpy.org/doc/stable/license.html) |
 
-Only the backend foundation and test tools are admitted now. Model runtimes,
-model weights, media binaries, tracking helpers, and Home Assistant itself will
+Milestone 2 adds the headless OpenCV 4 series and NumPy. Their PyPI metadata and
+Windows/Linux ARM64 wheel availability were checked. NumPy 2.5 requires Python
+3.12+, so the Python 3.11-compatible 2.4.6 release is pinned. OpenCV 5 is not selected
+for this initial adapter. Do not install multiple OpenCV package variants together:
+they share the same `cv2` namespace. Pi installation/performance remain unverified.
+
+Model runtimes, model weights, media-server binaries, tracking helpers, and Home Assistant itself will
 be pinned separately when needed. Licensing of weights is distinct from their
 runtime. No arbitrary forks or floating Git package installs are used.
 

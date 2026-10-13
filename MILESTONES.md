@@ -13,7 +13,7 @@ Public **`S-PS-R/SecurityPI`** creation and implementation pushes are authorized
 Develop on Windows laptops, push implementation milestones to GitHub, and deploy to a Raspberry Pi that runs independently 24/7. Provide person/vehicle detection, parking occupancy, event recordings, live viewing, and iPhone notifications.
 
 - Raspberry Pi 4 with 4 GB RAM, running Raspberry Pi OS.
-- Logitech/Logi HD 1080p USB webcam; exact model and capture formats to verify.
+- Logitech c922 Pro Stream Webcam identified on Windows; modes enumerated and 720p/10 FPS delivery checked. Pi behavior still needs verification.
 - Sense HAT V2 installed, with a fan on the main board.
 - Camera looking outside through a window.
 - iPhone companion; Windows-only development computers, no Mac available.
@@ -108,11 +108,14 @@ Exclude credentials, device tokens, recordings, databases, virtual environments,
 
 ### Push 2 — USB capture and window feasibility
 
-- [ ] Implement synthetic/video/webcam sources, timestamps, clean shutdown, and bounded recovery.
-- [ ] Verify webcam on PC/Pi and enumerate supported formats, resolutions, frame rates.
+- [x] Implement synthetic/video/webcam sources, timestamps, clean shutdown, and bounded native-call recovery. Portable tests cover generated-video EOF, disconnect/reopen, hung calls, and partial interrupted capture.
+- [x] Windows c922 capture and FFmpeg mode enumeration verified; 30 frames at 1280×720, about 9.98 delivered FPS. Private snapshot/report excluded from Git.
+- [ ] Verify webcam on Pi and enumerate Pi-supported modes; physically exercise unplug/replug and scene freshness.
 - [ ] Test real window placement day/night; record door/parking coverage and blind spots.
+- [ ] Confirm portable CI for the milestone 2 candidate.
 - **Acceptance:** capture and reconnect work; real samples establish usable detail and any required placement changes.
 - **Commit:** `feat: capture USB video and validate window view`
+- **Current status:** software/Windows candidate; full milestone remains pending Pi, physical reconnect, and final window checks. See [capture evidence](docs/capture.md) and [field procedure](docs/window-validation.md).
 
 ### Push 3 — Person and vehicle inference
 

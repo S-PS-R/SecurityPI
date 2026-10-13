@@ -1,4 +1,4 @@
-name: Foundation checks
+name: Portable checks
 on:
   push:
   pull_request:
@@ -30,3 +30,4 @@ jobs:
       - run: python -m pytest
       - run: python -m securitypi --help
       - run: python -m securitypi check-config --config config/example.toml
+      - run: python -m securitypi capture --config config/example.toml --frames 3 --report data/ci-capture.json

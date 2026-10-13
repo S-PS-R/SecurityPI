@@ -20,8 +20,10 @@ local project without dependency resolution/build isolation. Setuptools is pinne
 in the runtime requirements so editable installation works consistently. Build
 and maintain a separate environment on the Pi; do not transfer `.venv` from Windows.
 
-OpenCV/inference, FFmpeg/MediaMTX, Sense HAT, GPIO/I2C permissions, systemd,
-Home Assistant Container, and Tailscale are not installed by this foundation.
+Milestone 2 installs OpenCV/NumPy through the runtime requirements. The selected
+releases have published ARM64 wheels, but the actual Pi installation is pending.
+Inference, FFmpeg/MediaMTX service setup, Sense HAT, GPIO/I2C permissions, systemd,
+Home Assistant Container, and Tailscale are not installed by the Python package.
 These will have separate official-source installation instructions and hardware
 acceptance checks. A USB webcam does not need a CSI/Picamera2 adapter.
 

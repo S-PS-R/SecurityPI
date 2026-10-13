@@ -4,7 +4,15 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 
 class ConfigError(ValueError):
@@ -21,11 +29,34 @@ class ServerSettings(SettingsModel):
 
 
 class CameraSettings(SettingsModel):
-    source: Literal["synthetic", "usb"] = "synthetic"
+    source: Literal["synthetic", "usb", "video"] = "synthetic"
+    video_path: Path | None = None
+    backend: Literal["auto", "dshow", "msmf", "v4l2", "ffmpeg"] = "auto"
+    fourcc: str | None = Field(default=None, pattern=r"^[A-Za-z0-9 ]{4}$")
+    io_timeout_seconds: float = Field(default=10.0, ge=0.1, le=60, strict=True, allow_inf_nan=False)
+    reconnect_attempts: int = Field(default=2, ge=0, le=10, strict=True)
+    reconnect_delay_seconds: float = Field(
+        default=1.0, ge=0, le=10, strict=True, allow_inf_nan=False
+    )
     device_index: int = Field(default=0, ge=0, strict=True)
     width: int = Field(default=640, ge=1, le=4096, strict=True)
     height: int = Field(default=480, ge=1, le=4096, strict=True)
     fps: int = Field(default=10, ge=1, le=60, strict=True)
+
+    @field_validator("video_path", mode="before")
+    @classmethod
+    def nonempty_video_path(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            raise ValueError("video_path must not be empty")
+        return value
+
+    @model_validator(mode="after")
+    def validate_file_source(self):
+        if self.source == "video" and self.video_path is None:
+            raise ValueError("video source requires video_path")
+        if self.source != "video" and self.video_path is not None:
+            raise ValueError("video_path is only used by video sources")
+        return self
 
 
 class StorageSettings(SettingsModel):
@@ -84,4 +115,9 @@ def load_settings(path: Path) -> Settings:
     if not directory.is_absolute():
         directory = path.resolve().parent / directory
     settings.storage.directory = directory.resolve()
+    if settings.camera.video_path is not None:
+        video = settings.camera.video_path.expanduser()
+        if not video.is_absolute():
+            video = path.resolve().parent / video
+        settings.camera.video_path = video.resolve()
     return settings

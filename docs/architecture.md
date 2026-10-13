@@ -22,10 +22,12 @@ The intended pipeline is camera owner → shared media/analysis feed → detecto
 tracker → parking/activity rules → local evidence/events → Home Assistant adapter
 → dashboard/mobile notification. Media transport runs independently of inference.
 
-Milestone 1 implements only the configuration, CLI, JSON logging, and local HTTP
-foundation. It sends no state to Home Assistant and opens no camera. Both synthetic
-and USB source names are accepted as future configuration, but neither captures
-frames yet. Status never mistakes process liveness for monitoring readiness.
+Milestone 1 implements the configuration, CLI, JSON logging, and local HTTP
+foundation. Milestone 2 adds demand-driven frame sources and a standalone capture
+diagnostic command with native-call deadlines. It sends no state to Home Assistant.
+The API does not own capture yet and never mistakes process liveness for monitoring
+readiness. The capture worker is currently the camera owner; a shared FFmpeg/media
+owner may replace it after the streaming/inference benchmark, without competing owners.
 
 No custom React/PWA build or Node dependency is required. `app/` reserves space
 for Home Assistant dashboard examples. A custom UI is a later optional extension.
