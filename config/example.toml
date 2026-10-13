@@ -1,0 +1,26 @@
+# Copy to local.toml for personal settings. Paths are relative to this file.
+# The foundation does not capture video or connect to Home Assistant yet.
+name = "SecurityPI"
+log_level = "INFO"
+
+[server]
+# Local only until authentication/private access is implemented.
+host = "127.0.0.1"
+port = 8000
+
+[camera]
+source = "synthetic"
+device_index = 0
+width = 640
+height = 480
+fps = 10
+
+[storage]
+directory = "../data"
+retention_days = 7
+max_gb = 5.0
+
+[home_assistant]
+url = "http://homeassistant.local:8123"
+# Future adapter reads this environment variable; never place the token here.
+token_env = "SECURITYPI_HA_TOKEN"
