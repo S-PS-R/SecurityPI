@@ -112,7 +112,7 @@ Exclude credentials, device tokens, recordings, databases, virtual environments,
 - [x] Windows c922 capture and FFmpeg mode enumeration verified; 30 frames at 1280×720, about 9.98 delivered FPS. Private snapshot/report excluded from Git.
 - [ ] Verify webcam on Pi and enumerate Pi-supported modes; physically exercise unplug/replug and scene freshness.
 - [ ] Test real window placement day/night; record door/parking coverage and blind spots.
-- [ ] Confirm portable CI for the milestone 2 candidate.
+- [x] Confirm portable CI for the milestone 2 candidate: all four Windows/Ubuntu Python 3.11/3.12 jobs passed ([run](https://github.com/S-PS-R/SecurityPI/actions/runs/38335532235)).
 - **Acceptance:** capture and reconnect work; real samples establish usable detail and any required placement changes.
 - **Commit:** `feat: capture USB video and validate window view`
 - **Current status:** software/Windows candidate; full milestone remains pending Pi, physical reconnect, and final window checks. See [capture evidence](docs/capture.md) and [field procedure](docs/window-validation.md).
@@ -225,5 +225,6 @@ Retain GPT-6.1 Sol with medium reasoning as proposed default; Luna for scoped ro
 | --- | --- | --- | --- | --- |
 | 0 | `19958b9` | Roadmap/assessment included in initial push | Confirmed equipment documented | Published |
 | 1 | `19958b9` | Clean install, 15 tests, lint/format, dependency/CLI/HTTP checks; all four CI jobs passed | Windows local; Windows/Ubuntu CI, Python 3.11/3.12; no Pi/iPhone execution | Complete |
+| 2 | `84645fd` | 26 tests, lint/format, dependency checks, generated-video EOF, blocked worker/reconnect tests; all four CI jobs passed | Real Windows c922 720p/~10 FPS and mode enumeration; Pi/physical reconnect/window checks pending | Software/Windows candidate |
 
-Next implementation task: milestone 2 — USB capture and window feasibility. Home Assistant is selected; retain Pi/iPhone hardware acceptance gates. See [docs/verification.md](docs/verification.md) for milestone 1 evidence.
+Next field task: complete milestone 2's Pi/physical reconnect/day-night window checklist in [docs/window-validation.md](docs/window-validation.md). The portable capture interface is ready for milestone 3 person/vehicle inference work on the PC; retain hardware acceptance gates. See [docs/verification.md](docs/verification.md) for both pushes' evidence.

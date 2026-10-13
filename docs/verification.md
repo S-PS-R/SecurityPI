@@ -48,4 +48,8 @@ October 12, 2026 (America/New_York), Windows x64/Python 3.12.14.
 - Pi capture/performance, physical unplug/replug, and final day/night window view
   are pending. This is a candidate push, not full hardware acceptance.
 
-Remote CI results will be added after pushing this candidate.
+All four Windows/Ubuntu Python 3.11/3.12 CI jobs passed for code commit
+[`84645fd`](https://github.com/S-PS-R/SecurityPI/commit/84645fdbb2d23db2633f388efc87fd435b7ee839).
+See [the milestone 2 Actions run](https://github.com/S-PS-R/SecurityPI/actions/runs/38335532235).
+The documentation-only evidence update does not change tested code. Full milestone
+2 remains pending the field checks in [window-validation.md](window-validation.md).
