@@ -1,5 +1,8 @@
 # PC versus Pi dependencies
 
+For the future installation session, read [PI_INSTALL_MEMORY.md](../PI_INSTALL_MEMORY.md)
+first. Hardware checks are deferred until the user clones/installs on the Pi.
+
 The foundation uses Python 3.11–3.13, with 3.12 recommended on Windows. Check the
 installed Pi OS release, architecture, and Python version before choosing the
 target runtime. Inference wheels may impose additional limits. A 64-bit Pi OS is

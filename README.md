@@ -128,3 +128,9 @@ See [architecture](docs/architecture.md), [Home Assistant plan](docs/home-assist
 Code in this repository is MIT licensed. Upstream dependencies and future model
 weights retain their own licenses. This system reports observed activity and
 uncertainty; a person lingering near a car is not proof of a break-in.
+
+## Pi installation handoff
+
+When you clone this repository onto the Pi and request installation, start with
+[PI_INSTALL_MEMORY.md](PI_INSTALL_MEMORY.md). It preserves the setup sequence,
+environment checks, and hardware acceptance deferred until installation on the Pi.
