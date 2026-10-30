@@ -19,6 +19,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["httpx==0.28.1", "pytest==9.1.1", "ruff==0.17.0"]
+vision = ["lapx==0.10.0"]
+onnxruntime = ["onnxruntime==1.31.1", "flatbuffers==25.12.19", "protobuf==7.36.2", "packaging==26.3"]
+
+[tool.setuptools.package-data]
+"securitypi._vendor.bytetrack" = ["LICENSE", "README.md"]
 
 [project.scripts]
 securitypi = "securitypi.cli:main"
@@ -33,6 +38,7 @@ addopts = "-ra"
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+extend-exclude = ["src/securitypi/_vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

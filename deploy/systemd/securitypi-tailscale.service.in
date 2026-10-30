@@ -1,0 +1,18 @@
+[Unit]
+Description=Private Home Assistant access through Tailscale
+After=network-online.target
+
+[Service]
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/.tools/tailscale/tailscaled --tun=userspace-networking --socket=@REPO@/data/tailscale/tailscaled.sock --statedir=@REPO@/data/tailscale --no-logs-no-support
+Restart=on-failure
+RestartSec=10
+MemoryMax=128M
+MemorySwapMax=32M
+CPUQuota=30%
+TasksMax=32
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

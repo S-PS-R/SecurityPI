@@ -1,0 +1,37 @@
+# Minimal Home Assistant configuration for the SecurityPI phone interface.
+# Personal state is kept in ignored data/home-assistant, not this template.
+homeassistant:
+  name: SecurityPI
+  time_zone: America/New_York
+  packages: !include_dir_named packages
+  media_dirs:
+    securitypi: /config/media/securitypi-person-events
+
+frontend:
+api:
+http:
+  server_host: 0.0.0.0
+  server_port: 8123
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
+config:
+mobile_app:
+history:
+media_source:
+logger:
+  default: warning
+
+recorder:
+  purge_keep_days: 7
+  commit_interval: 30
+
+lovelace:
+  dashboards:
+    securitypi-dashboard:
+      mode: yaml
+      filename: securitypi-dashboard.yaml
+      title: SecurityPI
+      icon: mdi:cctv
+      show_in_sidebar: true

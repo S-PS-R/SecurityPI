@@ -1,0 +1,110 @@
+# Home Assistant package. The HA process must share this Pi's host network.
+# Merge packages into configuration.yaml as described in docs/home-assistant.md.
+rest:
+  - resource: http://127.0.0.1:8000/api/vision
+    scan_interval: 2
+    timeout: 5
+    sensor:
+      - name: SecurityPI monitoring
+        unique_id: securitypi_monitoring
+        value_template: "{{ 'online' if value_json.monitoring else 'offline' }}"
+        json_attributes:
+          - state
+          - age_seconds
+          - captured_at
+          - detections
+          - parking
+          - road_zone_status
+      - name: SecurityPI people visible
+        unique_id: securitypi_people_visible
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.people_visible }}"
+        unit_of_measurement: objects
+        icon: mdi:account-group
+      - name: SecurityPI vehicles visible
+        unique_id: securitypi_vehicles_visible
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.vehicles_visible }}"
+        unit_of_measurement: objects
+      - name: SecurityPI objects visible
+        unique_id: securitypi_objects_visible
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.objects_visible }}"
+        unit_of_measurement: objects
+      - name: SecurityPI decoded fps
+        unique_id: securitypi_decoded_fps
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.decoded_fps }}"
+        unit_of_measurement: FPS
+      - name: SecurityPI analysis fps
+        unique_id: securitypi_analysis_fps
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.analysis_fps }}"
+        unit_of_measurement: FPS
+      - name: SecurityPI capture fps
+        unique_id: securitypi_capture_fps
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.capture_fps }}"
+        unit_of_measurement: FPS
+      - name: SecurityPI inference latency
+        unique_id: securitypi_inference_latency
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.inference_ms }}"
+        unit_of_measurement: ms
+      - name: SecurityPI longest observation
+        unique_id: securitypi_longest_observation
+        availability: "{{ value_json.monitoring }}"
+        value_template: "{{ value_json.longest_observed_seconds }}"
+        unit_of_measurement: s
+      - name: SecurityPI parking
+        unique_id: securitypi_parking
+        value_template: "{{ value_json.parking.availability }}"
+        icon: mdi:parking
+  - resource: http://127.0.0.1:8000/api/notifications
+    scan_interval: 30
+    timeout: 5
+    sensor:
+      - name: SecurityPI notifications
+        unique_id: securitypi_notifications
+        value_template: >-
+          {{ 'Off' if not value_json.enabled else
+             ('Ready to send' if value_json.worker_running else 'Stopped') }}
+        json_attributes:
+          - events
+          - phone_receipt
+          - recent_events
+          - rules
+
+  - resource: http://127.0.0.1:8000/api/storage
+    scan_interval: 300
+    timeout: 5
+    sensor:
+      - name: SecurityPI history size
+        unique_id: securitypi_history_size
+        value_template: "{{ value_json.history_mib }}"
+        availability: "{{ value_json.history_mib is not none }}"
+        unit_of_measurement: MiB
+      - name: SecurityPI snapshot count
+        unique_id: securitypi_snapshot_count
+        value_template: "{{ value_json.snapshot_count }}"
+        unit_of_measurement: images
+      - name: SecurityPI snapshot size
+        unique_id: securitypi_snapshot_size
+        value_template: "{{ value_json.snapshot_mib }}"
+        unit_of_measurement: MiB
+      - name: SecurityPI disk free
+        unique_id: securitypi_disk_free
+        value_template: "{{ value_json.disk_free_gib }}"
+        unit_of_measurement: GiB
+
+# Only compact numeric measurements enter Recorder. No track JSON or images.
+# In configuration.yaml set recorder.purge_keep_days: 7, commit_interval: 30.
+# No state_class: long-term statistics would outlive the retention period.
+recorder:
+  exclude:
+    entities:
+      - sensor.securitypi_monitoring
+      - sensor.securitypi_notifications
+      - sensor.securitypi_parking
+      - sensor.securitypi_longest_observation
+      - sensor.securitypi_recent_tracks

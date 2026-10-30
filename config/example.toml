@@ -1,5 +1,5 @@
 # Copy to local.toml for personal settings. Paths are relative to this file.
-# `capture` opens a source; `serve` is still only the foundation API.
+# `analyze` owns monitoring; `serve` reads its status without opening the camera.
 name = "SecurityPI"
 log_level = "INFO"
 
@@ -10,6 +10,8 @@ port = 8000
 
 [camera]
 source = "synthetic"
+# Enable for an upside-down camera mount; applied to captured frames.
+rotate_180 = false
 device_index = 0
 width = 640
 height = 480
@@ -28,5 +30,42 @@ max_gb = 5.0
 
 [home_assistant]
 url = "http://homeassistant.local:8123"
-# Future adapter reads this environment variable; never place the token here.
+# Notification worker reads this environment variable; never place the token here.
 token_env = "SECURITYPI_HA_TOKEN"
+notifications_enabled = false
+# notify_service = "mobile_app_your_iphone"
+# Seconds actually observed on a confirmed track before one person alert.
+person_seconds = 10.0
+expiry_seconds = 120.0
+
+[vision]
+# Optional CPU backend: onnxruntime requires requirements/onnxruntime.txt.
+backend = "opencv"
+# Download weights explicitly with model-fetch, then set the local model path.
+# model = "../data/models/yolo26n.onnx"
+threads = 1
+analysis_fps = 2.0
+preview_fps = 1.0
+calibration_seconds = 300.0
+
+[activity]
+stationary_seconds = 5.0
+parked_seconds = 60.0
+road_linger_seconds = 30.0
+# Optional roadway outline: 3–12 normalized [x,y] points for this camera position.
+# Empty means street location is unknown; no roadway-stop alerts are generated.
+# road_polygon = [[0.2, 0.3], [0.8, 0.3], [0.8, 0.7], [0.2, 0.7]]
+
+# Sparse raw training samples; disabled by default. Suggestions require review.
+[dataset]
+enabled = false
+interval_hours = 2.0
+duration_hours = 24.0
+max_images = 12
+max_mib = 100
+
+# Three person images at 5, 10 and 20 observed seconds; seven-day retention.
+[snapshots]
+enabled = false
+max_mib = 500
+max_images = 10000

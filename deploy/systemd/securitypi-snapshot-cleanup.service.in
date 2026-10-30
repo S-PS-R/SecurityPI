@@ -1,0 +1,12 @@
+[Unit]
+Description=Delete expired SecurityPI person snapshots
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/.venv/bin/python -m securitypi cleanup-snapshots --config @REPO@/config/local.toml
+MemoryMax=64M
+CPUQuota=20%
+TasksMax=16
+NoNewPrivileges=true
+UMask=0077

@@ -1,0 +1,97 @@
+title: SecurityPI
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:cctv
+    cards:
+      - type: glance
+        show_name: true
+        entities:
+          - entity: sensor.securitypi_people_visible
+            name: People
+          - entity: sensor.securitypi_vehicles_visible
+            name: Vehicles
+          - entity: sensor.securitypi_analysis_fps
+            name: Detection FPS
+      - type: conditional
+        conditions:
+          - entity: sensor.securitypi_monitoring
+            state: online
+        card:
+          type: picture-entity
+          entity: camera.securitypi_preview
+          name: Camera
+          camera_view: live
+          show_state: false
+          show_name: false
+      - type: history-graph
+        title: People & vehicles · 24h
+        hours_to_show: 24
+        min_y_axis: 0
+        entities:
+          - entity: sensor.securitypi_people_visible
+            name: People
+          - entity: sensor.securitypi_vehicles_visible
+            name: Vehicles
+      - type: markdown
+        title: Detections
+        content: |
+          {% if is_state('sensor.securitypi_monitoring', 'online') %}
+          | Type | Confidence |
+          |:--|--:|
+          {% for detection in state_attr('sensor.securitypi_monitoring', 'detections') or [] %}
+          | {{ detection.label }} | {{ (detection.confidence * 100) | round(0) | int }}% |
+          {% else %}
+          | — | — |
+          {% endfor %}
+          {% else %}
+          Offline
+          {% endif %}
+      - type: history-graph
+        title: Detection speed · 1h
+        hours_to_show: 1
+        min_y_axis: 0
+        entities:
+          - entity: sensor.securitypi_analysis_fps
+            name: Detection
+          - entity: sensor.securitypi_decoded_fps
+            name: Decoded
+      - type: button
+        name: Person snapshots
+        icon: mdi:image-multiple
+        tap_action:
+          action: navigate
+          navigation_path: /media-browser
+      - type: markdown
+        title: Alerts
+        content: |
+          | Time | Event | Delivery |
+          |:--|:--|:--|
+          {% for event in state_attr('sensor.securitypi_notifications', 'recent_events') or [] %}
+          | {{ event.created | timestamp_custom('%H:%M:%S') }} | {{ event.message if event.title == 'SecurityPI' else event.title | replace('SecurityPI: ', '') }} | {{ event.state }} |
+          {% else %}
+          | — | — | — |
+          {% endfor %}
+      - type: glance
+        entities:
+          - entity: sensor.securitypi_snapshot_count
+            name: Images
+          - entity: sensor.securitypi_snapshot_size
+            name: Images size
+          - entity: sensor.securitypi_history_size
+            name: History
+          - entity: sensor.securitypi_disk_free
+            name: Free space
+  - title: History
+    path: history
+    icon: mdi:history
+    cards:
+      - type: history-graph
+        title: People & vehicles · 7d
+        hours_to_show: 168
+        min_y_axis: 0
+        entities:
+          - entity: sensor.securitypi_people_visible
+            name: People
+          - entity: sensor.securitypi_vehicles_visible
+            name: Vehicles

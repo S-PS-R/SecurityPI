@@ -1,0 +1,6 @@
+# Optional CPU inference backend; no training, CUDA or replacement model weights.
+-r vision.txt
+onnxruntime==1.31.1
+flatbuffers==25.12.19
+protobuf==7.36.2
+packaging==26.3

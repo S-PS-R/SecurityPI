@@ -1,3 +1,7 @@
+> Current Pi verification and measured results are archived in
+> [docs/testing-results.md](docs/testing-results.md). Historical hardware/setup
+> descriptions below record earlier plans and do not override that measured state.
+
 # SecurityPI — Raspberry Pi 4 Smart Security System
 
 Created: October 11, 2026. Tool assessment added: October 12, 2026.
@@ -228,3 +232,26 @@ Retain GPT-6.1 Sol with medium reasoning as proposed default; Luna for scoped ro
 | 2 | `84645fd` | 26 tests, lint/format, dependency checks, generated-video EOF, blocked worker/reconnect tests; all four CI jobs passed | Real Windows c922 720p/~10 FPS and mode enumeration; Pi/physical reconnect/window checks pending | Software/Windows candidate |
 
 User decision (October 12): hardware acceptance will be performed after the repository is cloned and installed on the Pi. These pending checks do not block subsequent portable PC implementation. Read [PI_INSTALL_MEMORY.md](PI_INSTALL_MEMORY.md) when the user requests Pi installation, then run the [hardware/window checklist](docs/window-validation.md). Keep full hardware acceptance pending until measured. The portable interface is ready for milestone 3 person/vehicle inference work. See [docs/verification.md](docs/verification.md) for both pushes' evidence.
+
+## Local Pi vision candidate — October 20, 2026
+
+Pi 5 ARM64/Python 3.13 installation and real USB capture were measured locally.
+The current candidate adds optional OpenCV ONNX detection, reused ByteTrack core,
+car/person tracking duration, movement-aware automatic curb-row scale learning,
+and reproducible model speed/memory/size benchmarks. See [vision](docs/vision.md).
+YOLO26n is the conservative local default: one inference thread, 2 FPS analysis.
+Model weights/private images remain ignored. This working-tree candidate is not
+a published milestone or completed parking-availability feature. Physical
+reconnect, held-out field evaluation, visibility/curb semantics, day/night
+acceptance and sustained operation remain pending. No phone/media services are added.
+
+## Local phone bridge and overnight candidate — October 21, 2026
+
+Added freshness-aware loopback observations/JPEG, official Home Assistant REST
+sensor and dashboard templates, and an opt-in durable mobile-app notification
+worker with mock HTTP tests. No new runtime package, broker, custom iPhone app or
+language-model weights. Added a bounded Linux soak supervisor with resource-stop
+conditions and notification dry runs. Home Assistant is not yet deployed; actual
+iPhone layout/receipt and remote access remain pending. See
+[phone integration](docs/home-assistant.md), [overnight tests](docs/overnight-tests.md),
+and [local AI](docs/local-ai.md). This is an uncommitted local candidate.

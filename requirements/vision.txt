@@ -1,0 +1,3 @@
+# Inference reuses pinned OpenCV/NumPy. ByteTrack's only extra runtime is LAP.
+-r runtime.txt
+lapx==0.10.0

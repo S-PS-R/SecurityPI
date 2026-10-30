@@ -210,3 +210,80 @@ def test_interrupted_capture_releases_source_and_reports_partial_result(
     assert run_capture(settings, args) == 130
     assert source.closed
     assert json.loads(capsys.readouterr().out)["reason"] == "interrupted"
+
+
+def test_rotation_preserves_dimensions_and_rotates_asymmetric_frame(video_file):
+    for settings in (
+        CameraSettings(width=64, height=48),
+        CameraSettings(source="video", video_path=video_file),
+    ):
+        with create_source(settings) as source:
+            original = source.read()
+        with create_source(settings.model_copy(update={"rotate_180": True})) as source:
+            rotated = source.read()
+        assert rotated.image.shape == original.image.shape
+        assert np.array_equal(rotated.image, original.image[::-1, ::-1])
+        assert rotated.sequence == original.sequence
+        assert rotated.captured_at is not None
+
+
+def test_usb_grabs_continuously_but_decodes_only_requested_frames():
+    from securitypi.capture import _usb_frames
+
+    class Camera:
+        grabbed = 0
+        retrieved = []
+
+        def grab(self):
+            self.grabbed += 1
+            return True
+
+        def retrieve(self):
+            self.retrieved.append(self.grabbed)
+            return True, np.full((8, 8, 3), self.grabbed, np.uint8)
+
+    class Connection:
+        sent = []
+
+        def poll(self):
+            return camera.grabbed in (1, 13, 25)
+
+        def recv(self):
+            return "close" if camera.grabbed == 25 else "read"
+
+        def send(self, value):
+            self.sent.append(value)
+
+    camera, connection = Camera(), Connection()
+    _usb_frames(camera, connection)
+    assert camera.grabbed == 25
+    assert camera.retrieved == [1, 13]
+    assert [message[1][4] for message in connection.sent] == [1, 13]
+    assert [int(message[1][0][0, 0, 0]) for message in connection.sent] == [1, 13]
+
+
+def test_usb_grab_failure_reports_disconnect_without_reusing_old_frame():
+    from securitypi.capture import _usb_frames
+
+    class Camera:
+        def grab(self):
+            return False
+
+        def retrieve(self):
+            pytest.fail("Cannot retrieve a frame after failed grab")
+
+    class Connection:
+        sent = []
+
+        def poll(self):
+            return True
+
+        def recv(self):
+            return "read"
+
+        def send(self, value):
+            self.sent.append(value)
+
+    connection = Connection()
+    _usb_frames(Camera(), connection)
+    assert connection.sent[0][0] == "error"

@@ -117,6 +117,7 @@ def run_capture(settings: Settings, args: argparse.Namespace) -> int:
             "fps": config.fps,
             "fourcc": config.fourcc,
             "backend": config.backend,
+            "rotate_180": config.rotate_180,
         },
         "negotiated": observed,
         "last_frame": {

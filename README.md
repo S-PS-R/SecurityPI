@@ -1,15 +1,20 @@
 # SecurityPI
 
-Local security and parking analysis for a Raspberry Pi 4, developed on Windows.
-The official Home Assistant iPhone app will provide the dashboard, controls,
-live viewing, and notifications. Python handles our camera analysis and rules;
-established media/inference components will be added when their milestones need them.
+Local security and parking analysis on a **Raspberry Pi 5 with4 GB RAM**.
+Python coordinates a single USB camera, native ONNX/OpenCV inference, temporary
+tracking and bounded private snapshots. Home Assistant provides the authenticated
+iPhone dashboard, camera and notification integration; private Tailscale access
+has been confirmed over cellular.
 
-**Milestone 2 adds portable capture diagnostics.** Synthetic frames, local video
-files, and USB webcams share a timestamped frame-source interface. Capture commands
-can save explicitly requested local snapshots and JSON reports. Person/vehicle
-detection, security recordings, live streaming, Home Assistant connections, and
-phone alerts are later milestones. Pi/window checks remain pending.
+The installed candidate detects people and vehicles, uses observed-time person
+alerts and keeps seven-day image/dashboard history. Parking availability stays
+unknown until visibility and geometry are verified. Controlled person-alert receipt,
+physical reconnect and representative field accuracy remain pending.
+
+See [setup and measured limits](docs/vision.md),
+[Home Assistant deployment](docs/home-assistant.md), and the
+[archived test results](docs/testing-results.md). Generated diagnostics and personal
+data stay out of Git. Source regression tests are retained for every code review.
 
 ## Requirements
 
@@ -18,7 +23,7 @@ phone alerts are later milestones. Pi/window checks remain pending.
   that range after testing.
 - Git for source checkout. No Node.js, Mac, camera, Pi, or Home Assistant instance
   is needed to run foundation checks.
-- Target hardware: Pi 4 / 4 GB, Logitech 1080p USB webcam, Sense HAT V2 and fan.
+- Current target: Pi 5 / 4 GB, USB webcam, Sense HAT V2 and automatic fan cooling.
 
 ## Windows setup
 
@@ -134,3 +139,10 @@ uncertainty; a person lingering near a car is not proof of a break-in.
 When you clone this repository onto the Pi and request installation, start with
 [PI_INSTALL_MEMORY.md](PI_INSTALL_MEMORY.md). It preserves the setup sequence,
 environment checks, and hardware acceptance deferred until installation on the Pi.
+
+Local phone-integration candidate: [Home Assistant dashboard and notifications](docs/home-assistant.md)
+now consume fresh observations without loading another detector. The opt-in
+notification worker has bounded retry/expiry/deduplication and a network-free dry
+run. Home Assistant deployment and actual iPhone receipt remain pending.
+[Overnight testing](docs/overnight-tests.md) runs a bounded Linux camera/API soak;
+[local AI assessment](docs/local-ai.md) explains the optional Qwen role and limits.

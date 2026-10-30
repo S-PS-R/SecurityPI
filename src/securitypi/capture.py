@@ -28,6 +28,7 @@ class Frame:
     captured_at: datetime
     monotonic_seconds: float
     media_seconds: float | None = None
+    captured_frames: int | None = None  # USB grabs, including frames never decoded.
 
 
 class FrameSource(Protocol):
@@ -67,6 +68,8 @@ class SyntheticSource:
         y = self.config.height // 2
         image[y : min(y + box, self.config.height), x : x + box] = (50, 180, 240)
         self.sequence += 1
+        if self.config.rotate_180:
+            image = cv2.rotate(image, cv2.ROTATE_180)
         return Frame(image, self.sequence, datetime.now(UTC), time.monotonic())
 
     def close(self) -> None:
@@ -88,6 +91,44 @@ def _backend(config: CameraSettings) -> int:
         "v4l2": cv2.CAP_V4L2,
         "ffmpeg": cv2.CAP_FFMPEG,
     }[config.backend]
+
+
+def _send_frame(connection, image, captured_at, acquired, media, captured_frames=None):
+    if (
+        image is None
+        or image.size == 0
+        or image.ndim != 3
+        or image.shape[2] != 3
+        or image.nbytes > 64 * 1024 * 1024
+    ):
+        connection.send(("error", "Unsupported or oversized camera frame."))
+        return False
+    connection.send(("frame", (image, captured_at, acquired, media, captured_frames)))
+    return True
+
+
+def _usb_frames(capture, connection):
+    """Drain encoded USB frames; decode/transfer only after a consumer requests one.
+
+    All capture operations stay in this one process. Check requests just after
+    grabbing, so consumers get the newest frame without another frame-period wait.
+    """
+    grabbed = 0
+    while True:
+        if not capture.grab():
+            connection.send(("error", "Camera stopped returning frames."))
+            return
+        captured_at, acquired = datetime.now(UTC), time.monotonic()
+        grabbed += 1
+        if connection.poll():
+            if connection.recv() != "read":
+                return
+            ok, image = capture.retrieve()
+            if not ok:
+                connection.send(("error", "Camera frame decoding failed."))
+                return
+            if not _send_frame(connection, image, captured_at, acquired, None, grabbed):
+                return
 
 
 def _opencv_worker(connection: Connection, config: CameraSettings) -> None:
@@ -130,6 +171,9 @@ def _opencv_worker(connection: Connection, config: CameraSettings) -> None:
             "property_set_results": negotiated,
         }
         connection.send(("opened", info))
+        if config.source == "usb":
+            _usb_frames(capture, connection)
+            return
         count = 0
         expected = _finite(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         while connection.recv() == "read":
@@ -137,20 +181,15 @@ def _opencv_worker(connection: Connection, config: CameraSettings) -> None:
             captured_at = datetime.now(UTC)
             acquired = time.monotonic()
             if not ok or image is None or image.size == 0:
-                if config.source == "video":
-                    # Frame-count metadata is optional; known premature EOF is a decode failure.
-                    premature = count == 0 or (expected is not None and count < int(expected))
-                    connection.send(("error" if premature else "eof", "Video decoding ended."))
-                else:
-                    connection.send(("error", "Camera stopped returning frames."))
-                return
-            if image.ndim != 3 or image.shape[2] != 3 or image.nbytes > 64 * 1024 * 1024:
-                connection.send(("error", "Unsupported or oversized camera frame."))
+                # Frame-count metadata is optional; known premature EOF is a decode failure.
+                premature = count == 0 or (expected is not None and count < int(expected))
+                connection.send(("error" if premature else "eof", "Video decoding ended."))
                 return
             count += 1
             media_ms = capture.get(cv2.CAP_PROP_POS_MSEC)
             media = media_ms / 1000 if math.isfinite(media_ms) and media_ms >= 0 else None
-            connection.send(("frame", (image, captured_at, acquired, media)))
+            if not _send_frame(connection, image, captured_at, acquired, media):
+                return
     except (cv2.error, EOFError, BrokenPipeError, OSError, ValueError):
         try:
             connection.send(("error", "Native capture failed. Check device or codec."))
@@ -173,6 +212,7 @@ class NativeSource:
         self.closed = False
         self.ended = False
         self.reconnects = 0
+        self.captured_frames, self.worker_grabbed = 0, 0
 
     def __enter__(self):
         return self
@@ -204,6 +244,7 @@ class NativeSource:
         self.info = value
 
     def _reset(self) -> None:
+        self.worker_grabbed = 0
         if self.connection is not None:
             try:
                 self.connection.send("close")
@@ -241,9 +282,22 @@ class NativeSource:
                     return None
                 if status != "frame":
                     raise CaptureError(value)
-                image, captured_at, acquired, media = value
+                image, captured_at, acquired, media = value[:4]
+                grabbed = value[4] if len(value) > 4 else None
+                if grabbed is not None:
+                    self.captured_frames += max(0, grabbed - self.worker_grabbed)
+                    self.worker_grabbed = grabbed
                 self.sequence += 1
-                return Frame(image, self.sequence, captured_at, acquired, media)
+                if self.config.rotate_180:
+                    image = cv2.rotate(image, cv2.ROTATE_180)
+                return Frame(
+                    image,
+                    self.sequence,
+                    captured_at,
+                    acquired,
+                    media,
+                    self.captured_frames if grabbed is not None else None,
+                )
             except (CaptureError, OSError) as exc:
                 self._reset()
                 if attempt == retries:
@@ -264,12 +318,15 @@ def create_source(config: CameraSettings) -> FrameSource:
     return SyntheticSource(config) if config.source == "synthetic" else NativeSource(config)
 
 
-def save_snapshot(frame: Frame, path: Path) -> None:
+def save_snapshot(frame: Frame, path: Path, *, jpeg_quality: int = 95) -> None:
     extension = path.suffix.lower()
     if extension not in (".jpg", ".png"):
         raise CaptureError("Snapshot must use .jpg or .png.")
-    ok, encoded = cv2.imencode(extension, frame.image)
+    options = [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality] if extension == ".jpg" else []
+    ok, encoded = cv2.imencode(extension, frame.image, options)
     if not ok:
         raise CaptureError("Cannot encode snapshot.")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(encoded.tobytes())
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_bytes(encoded.tobytes())
+    temporary.replace(path)

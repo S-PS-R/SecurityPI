@@ -31,3 +31,21 @@ owner may replace it after the streaming/inference benchmark, without competing 
 
 No custom React/PWA build or Node dependency is required. `app/` reserves space
 for Home Assistant dashboard examples. A custom UI is a later optional extension.
+
+## Pi vision candidate
+
+A standalone bounded `analyze` command now shares existing frame-source/config code,
+uses OpenCV ONNX inference, and reuses the attributed ByteTrack core for temporary
+person/vehicle tracks. Only lapx is added; no custom tracker is implemented.
+One USB reader replaces a single latest-frame slot while inference samples it.
+The analysis command writes bounded current status/preview artifacts; the foundation
+API remains independent. Automatic vehicle-row geometry and camera-movement
+calibration are candidates; parking availability stays unknown without verified
+visibility. See [vision](vision.md) for interfaces, measurements and limitations.
+
+The phone bridge reads bounded, atomic analysis artifacts without importing the
+inference runtime. Its loopback API fails closed on stale observations. The
+separate optional notification worker owns a small SQLite outbox and HA REST
+requests; camera processing never waits on notification transport. Home Assistant
+REST sensors and built-in dashboard cards provide the planned iPhone surface.
+See [integration and pending deployment](home-assistant.md).

@@ -1,0 +1,21 @@
+[Unit]
+Description=SecurityPI camera and person/vehicle analysis
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/.venv/bin/python -m securitypi analyze --config @REPO@/config/local.toml --seconds 0
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=45
+MemoryMax=650M
+MemorySwapMax=128M
+CPUQuota=300%
+TasksMax=128
+Environment=OPENBLAS_NUM_THREADS=1
+Environment=OMP_NUM_THREADS=1
+NoNewPrivileges=true
+UMask=0077

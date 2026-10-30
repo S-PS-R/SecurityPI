@@ -1,0 +1,21 @@
+[Unit]
+Description=SecurityPI Home Assistant phone notification worker
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@
+EnvironmentFile=@REPO@/data/home-assistant-setup/notifications.env
+ExecStart=@REPO@/.venv/bin/python -m securitypi notify --config @REPO@/config/local.toml --seconds 0
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=15
+MemoryMax=128M
+MemorySwapMax=32M
+CPUQuota=10%
+TasksMax=32
+Environment=OPENBLAS_NUM_THREADS=1
+NoNewPrivileges=true
+UMask=0077
