@@ -63,13 +63,13 @@ These short windows demonstrate maintained operation around 4.1 FPS, not a stati
 
 After each source batch, focused tests plus real authenticated Home Assistant API/camera and live model freshness/class checks are performed. Analyzer changes use its existing user service; real-model comparisons pause/restore that worker, never run a competing detector. API reload requires an administrator terminal step. No synthetic notifications are sent; the deferred person/iPhone field test remains pending.
 
-Local verification: **178 tests passed**, Ruff checks passed, 54 Python files already formatted, dependency consistency passed, and no whitespace errors. Baseline GitHub Ubuntu Python 3.11/3.12 passed; baseline Windows failures informed the portability fixes above. Follow-up CI is reported in the linked commit checks.
+Local verification: **178 tests passed**, Ruff checks passed, 54 Python files already formatted, dependency consistency passed, and no whitespace errors. Baseline GitHub Ubuntu Python 3.11/3.12 passed; baseline Windows failures informed the portability fixes above. Follow-up [GitHub Actions run 41042929416](https://github.com/S-PS-R/SecurityPI/actions/runs/41042929416) passed all four jobs: Ubuntu and Windows, each on Python 3.11 and 3.12, including lint, formatting, tests, CLI/config checks and synthetic capture.
 
 The analyzer runs the reviewed code and authenticated Home Assistant API/camera checks passed. The system API remains on its previous process until the requested administrator restart; its new preview/history/storage behavior is verified by regression tests but is not yet claimed as deployed. Deferred person/iPhone and field-accuracy acceptance remain pending.
 
 ## Cleanup and publication
 
-Baseline source and sanitized test history were published as commit6b9919f before raw artifact deletion. Cleanup removed173 generated files plus temporary conversion tools:63,097,979 bytes (60.17 MiB). Models, private training/reviews, live HA database/media, configuration, credentials, outbox and Tailscale remained protected. Source regression tests are retained. No raw camera data or private device details were uploaded.
+Baseline source and sanitized test history were published as commit6b9919f before raw artifact deletion. Cleanup removed173 generated files plus temporary conversion tools:63,097,979 bytes (60.17 MiB). Models, private training/reviews, live HA database/media, configuration, credentials, outbox and Tailscale remained protected. Source regression tests are retained. Disposable pytest/Ruff/test bytecode caches removed after final verification reclaimed another 564,532 bytes. No raw camera data or private device details were uploaded.
 
 ## Function inventory
 
