@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -78,6 +79,17 @@ def run_soak(settings, args):
     import resource
 
     directory = settings.storage.directory
+    if read_vision(directory)["monitoring"]:
+        raise ValueError("Analysis is already active; stop it before starting a soak.")
+    family = socket.AF_INET6 if settings.server.host == "::1" else socket.AF_INET
+    with socket.socket(family, socket.SOCK_STREAM) as probe:
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            probe.bind((settings.server.host, settings.server.port))
+        except OSError:
+            raise ValueError(
+                "API port is already in use; stop its service before a soak."
+            ) from None
     directory.mkdir(parents=True, exist_ok=True)
     lock = (directory / "soak.lock").open("w")
     try:

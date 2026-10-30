@@ -1,11 +1,12 @@
-"""Compact track summaries: 14 days, 50,000 rows and a 16 MiB SQLite page limit."""
+"""Compact track summaries: seven days, 50,000 rows and a 16 MiB SQLite page limit."""
 
 import logging
 import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-RETENTION_SECONDS = 14 * 86400
+RETENTION_DAYS = 7
+RETENTION_SECONDS = RETENTION_DAYS * 86400
 MAX_ROWS = 50000
 MAX_PAGES = 4096
 
@@ -86,13 +87,17 @@ def read_tracks(directory: Path, now: float, limit: int = 30):
     path = directory / "tracks.sqlite3"
     try:
         with closing(
-            sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=0.1)
+            sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=0.1)
         ) as connection:
             connection.row_factory = sqlite3.Row
             rows = connection.execute(
                 "SELECT * FROM tracks WHERE last_seen >= ? ORDER BY last_seen DESC LIMIT ?",
                 (now - RETENTION_SECONDS, min(max(limit, 1), 100)),
             ).fetchall()
-        return {"available": True, "retention_days": 14, "tracks": [dict(row) for row in rows]}
+        return {
+            "available": True,
+            "retention_days": RETENTION_DAYS,
+            "tracks": [dict(row) for row in rows],
+        }
     except sqlite3.Error:
-        return {"available": False, "retention_days": 14, "tracks": []}
+        return {"available": False, "retention_days": RETENTION_DAYS, "tracks": []}

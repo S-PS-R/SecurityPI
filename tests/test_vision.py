@@ -309,3 +309,27 @@ def test_preprocessing_preserves_model_input_pixels_and_original_image(shape):
     expected = cv2.dnn.blobFromImage(square, 1 / 255, (640, 640), swapRB=True)
     np.testing.assert_array_equal(input_blob(image, 640), expected)
     np.testing.assert_array_equal(image, original)
+
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        (720, 1280),
+        (721, 1281),
+        (360, 640),
+        (641, 359),
+        (90, 160),
+        (1280, 720),
+        (17, 19),
+        (640, 640),
+    ],
+)
+def test_reusable_blob_preserves_every_float32_value_across_frames(shape):
+    rng = np.random.default_rng(42)
+    output = np.empty((1, 3, 640, 640), dtype=np.float32)
+    for _ in range(2):
+        image = rng.integers(0, 256, (*shape, 3), dtype=np.uint8)
+        expected = input_blob(image, 640)
+        actual = input_blob(image, 640, out=output)
+        assert actual is output
+        np.testing.assert_array_equal(actual, expected)

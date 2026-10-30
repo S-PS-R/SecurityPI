@@ -5,6 +5,7 @@ import re
 import time
 from datetime import UTC, datetime
 from queue import Empty, Full, Queue
+from stat import S_ISREG
 from threading import Event, Thread
 
 # Only files created by this module are eligible for automatic deletion.
@@ -23,10 +24,14 @@ def inventory(storage):
         raise OSError("Snapshot directory must not be a symlink")
     records = []
     for path in directory.glob("*.jpg"):
-        if NAME.fullmatch(path.name) and not path.is_symlink():
+        if NAME.fullmatch(path.name):
             try:
-                stamp = datetime.strptime(path.name.split("-")[0], "%Y%m%dT%H%M%S%fZ")
-                records.append((stamp.replace(tzinfo=UTC).timestamp(), path, path.stat().st_size))
+                metadata = path.lstat()
+                if not S_ISREG(metadata.st_mode):
+                    continue
+                stamp = path.name.split("-")[0]
+                captured = datetime.fromisoformat(stamp[:15] + "." + stamp[15:])
+                records.append((captured.timestamp(), path, metadata.st_size))
             except (FileNotFoundError, ValueError):
                 pass
     return sorted(records)
@@ -129,7 +134,6 @@ class PersonSnapshots:
                 continue
             temporary = snapshot_directory(self.storage) / (name + ".tmp")
             try:
-                cleanup(self.storage, self.config)
                 ok, encoded = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 80])
                 if not ok:
                     raise OSError("JPEG encoding failed")

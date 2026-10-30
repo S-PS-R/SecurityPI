@@ -52,3 +52,22 @@ def test_history_expires_old_tracks_and_caps_rows(tmp_path, monkeypatch):
 def test_reading_missing_history_does_not_create_database(tmp_path):
     assert read_tracks(tmp_path, 1000)["available"] is False
     assert not (tmp_path / "tracks.sqlite3").exists()
+
+
+def test_track_history_uses_the_same_seven_day_retention_as_dashboard(tmp_path):
+    now = datetime.now(UTC)
+    history = TrackHistory(tmp_path, "seven-days")
+    history.update([track(1)], now - timedelta(days=8))
+    history.update([track(2)], now - timedelta(days=6))
+    history.close(now.timestamp())
+    result = read_tracks(tmp_path, now.timestamp())
+    assert result["retention_days"] == 7
+    assert [row["id"] for row in result["tracks"]] == [2]
+
+
+def test_reading_missing_relative_history_is_unavailable(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    monkeypatch.chdir(tmp_path)
+    assert read_tracks(Path("missing"), 1000)["available"] is False
+    assert not (tmp_path / "missing").exists()

@@ -39,7 +39,11 @@ def test_stale_and_future_status_never_reports_zero_or_available(tmp_path, age):
     assert state["parking"]["available_spaces"] is None
 
 
-@pytest.mark.parametrize("content", ["{broken", "x" * 131073, '{"monitoring":true}'])
+@pytest.mark.parametrize(
+    "content",
+    ["{broken", "x" * 131073, '{"monitoring":true}'],
+    ids=("malformed", "oversized", "missing_fields"),
+)
 def test_broken_status_is_unavailable(tmp_path, content):
     (tmp_path / "vision-status.json").write_text(content)
     assert read_vision(tmp_path)["state"] == "unavailable"
@@ -299,3 +303,72 @@ def test_raw_detection_counts_do_not_wait_for_tracks_and_clear_when_detections_l
     write_json(tmp_path / "vision-status.json", raw)
     state = read_vision(tmp_path, now=now)
     assert state["people_visible"] == state["vehicles_visible"] == state["objects_visible"] == 0
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX replacement of an opened file")
+def test_preview_checks_timestamp_of_the_bytes_it_opened(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    write_json(tmp_path / "vision-status.json", live_state())
+    preview = tmp_path / "vision-preview.jpg"
+    preview.write_bytes(b"\xff\xd8stale")
+    os.utime(preview, (1, 1))
+    replacement = tmp_path / "replacement.jpg"
+    replacement.write_bytes(b"\xff\xd8fresh")
+    original_open = Path.open
+
+    def replace_after_open(path, *args, **kwargs):
+        stream = original_open(path, *args, **kwargs)
+        if path == preview:
+            replacement.replace(preview)
+        return stream
+
+    monkeypatch.setattr(Path, "open", replace_after_open)
+
+    async def check():
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(
+                app=create_app(Settings(storage={"directory": tmp_path}))
+            ),
+            base_url="http://test",
+        ) as client:
+            assert (await client.get("/api/preview.jpg")).status_code == 503
+
+    asyncio.run(check())
+
+
+@pytest.mark.skipif(os.name != "posix", reason="Linux soak process supervision")
+def test_soak_refuses_to_start_a_competing_live_analyzer(tmp_path, monkeypatch):
+    from argparse import Namespace
+
+    import securitypi.soak as soak
+
+    write_json(tmp_path / "vision-status.json", live_state())
+    monkeypatch.setattr(
+        soak.subprocess, "Popen", lambda *args, **kwargs: pytest.fail("Started competing worker")
+    )
+    with pytest.raises(ValueError, match="already active"):
+        soak.run_soak(
+            Settings(storage={"directory": tmp_path}),
+            Namespace(seconds=60, config=tmp_path / "config.toml"),
+        )
+
+
+@pytest.mark.skipif(os.name != "posix", reason="Linux soak process supervision")
+def test_soak_checks_api_port_before_starting_any_workers(tmp_path, monkeypatch):
+    import socket
+    from argparse import Namespace
+
+    import securitypi.soak as soak
+
+    monkeypatch.setattr(
+        soak.subprocess, "Popen", lambda *args, **kwargs: pytest.fail("Started competing worker")
+    )
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        settings = Settings(
+            storage={"directory": tmp_path}, server={"port": listener.getsockname()[1]}
+        )
+        with pytest.raises(ValueError, match="port is already in use"):
+            soak.run_soak(settings, Namespace(seconds=60, config=tmp_path / "config.toml"))

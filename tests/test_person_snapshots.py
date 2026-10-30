@@ -1,3 +1,4 @@
+import os
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -66,7 +67,8 @@ def test_snapshots_have_three_thresholds_and_unique_runs(tmp_path):
         writer.close()
         assert writer.written == 3 and writer.errors == 0
     assert len(inventory(tmp_path)) == 6
-    assert all(path.stat().st_mode & 0o077 == 0 for _, path, _ in inventory(tmp_path))
+    if os.name == "posix":
+        assert all(path.stat().st_mode & 0o077 == 0 for _, path, _ in inventory(tmp_path))
 
 
 def test_skipped_thresholds_use_one_image_and_queue_never_blocks(tmp_path):
@@ -142,8 +144,6 @@ def test_cleanup_does_not_follow_symlinks_or_invalid_dates(tmp_path):
 
 
 def test_cleanup_removes_only_stale_owned_temporary_writes(tmp_path):
-    import os
-
     directory = snapshot_directory(tmp_path)
     directory.mkdir(parents=True)
     stamp = datetime.now(UTC)
@@ -157,3 +157,22 @@ def test_cleanup_removes_only_stale_owned_temporary_writes(tmp_path):
     unrelated.write_bytes(b"keep")
     cleanup(tmp_path, SnapshotSettings(), stamp.timestamp())
     assert not stale.exists() and fresh.exists() and unrelated.exists()
+
+
+def test_inventory_ignores_directories_with_owned_snapshot_names(tmp_path):
+    directory = snapshot_directory(tmp_path)
+    directory.mkdir(parents=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    (directory / f"{stamp}-{uuid4().hex}-1-5.jpg").mkdir()
+    assert inventory(tmp_path) == []
+    assert cleanup(tmp_path, SnapshotSettings())["snapshot_count"] == 0
+
+
+def test_inventory_preserves_utc_microseconds_and_chronological_order(tmp_path):
+    directory = snapshot_directory(tmp_path)
+    directory.mkdir(parents=True)
+    stamps = [datetime(2024, 2, 29, 23, 59, 59, 123456, UTC), datetime(2024, 3, 1, 0, 0, 0, 1, UTC)]
+    for stamp in reversed(stamps):
+        name = stamp.strftime("%Y%m%dT%H%M%S%fZ")
+        (directory / f"{name}-{uuid4().hex}-1-5.jpg").write_bytes(b"x")
+    assert [row[0] for row in inventory(tmp_path)] == [stamp.timestamp() for stamp in stamps]

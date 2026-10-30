@@ -180,8 +180,9 @@ not a validated quantized model. No speed/size/accuracy conclusion or deployment
 result exists for that attempt. Live services were automatically restored.
 
 Before removal,173 generated diagnostic/test files totaled13,813,143 bytes and
-temporary conversion tools49,284,836 bytes: about60.2 MiB targeted for reclamation.
-This archive replaces those raw artifacts after its GitHub push is verified.
+temporary conversion tools49,284,836 bytes: 63,097,979 bytes (60.17 MiB) actually reclaimed after this archive was verified on GitHub.
+This Markdown archive replaces those raw artifacts. See [the function review](code-review.md)
+for follow-up fixes, measured performance and regression evidence.
 Production models,12-image private training pilot/reviews, configuration/credentials,
 Home Assistant databases/history, private person snapshots, notification outbox,
 Tailscale binaries/state and reusable source regression tests are preserved.

@@ -109,11 +109,12 @@ def decode(output, image_shape, input_size, confidence=0.15, nms_iou=0.45, limit
     ]
 
 
-def input_blob(image, size):
+def input_blob(image, size, *, out=None):
     """Keep the trained letterbox pixels while avoiding source-sized padding.
 
     Downscaling first is identical when both target dimensions are integers.
-    Odd dimensions and upscaling use the original path to preserve edge pixels.
+    Odd dimensions and upscaling preserve the original padding/resize order.
+    A single-owner detector can reuse its float32 NCHW output across calls.
     """
     height, width = image.shape[:2]
     side = max(height, width)
@@ -123,7 +124,12 @@ def input_blob(image, size):
         side = size
     square = np.full((side, side, 3), 114, dtype=np.uint8)
     square[:height, :width] = image
-    return cv2.dnn.blobFromImage(square, 1 / 255, (size, size), swapRB=True)
+    if out is None:
+        return cv2.dnn.blobFromImage(square, 1 / 255, (size, size), swapRB=True)
+    if side != size:
+        square = cv2.resize(square, (size, size))
+    np.multiply(square.transpose(2, 0, 1)[::-1], np.float32(1 / 255), out=out[0])
+    return out
 
 
 class Detector:
@@ -134,6 +140,7 @@ class Detector:
             raise VisionError("Use the opencv or onnxruntime CPU backend.")
         self.backend = backend
         self.size, self.confidence = size, confidence
+        self._blob = np.empty((1, 3, size, size), dtype=np.float32)
         cv2.setNumThreads(threads if backend == "opencv" else 1)
         if backend == "onnxruntime":
             self._load_onnxruntime(model, threads)
@@ -178,7 +185,7 @@ class Detector:
             raise VisionError("Cannot load the approved ONNX model with the CPU runtime.") from exc
 
     def predict(self, image):
-        blob = input_blob(image, self.size)
+        blob = input_blob(image, self.size, out=self._blob)
         if self.backend == "onnxruntime":
             try:
                 output = self.net.run(None, {self.input_name: blob})[0]

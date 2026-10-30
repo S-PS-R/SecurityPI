@@ -1,5 +1,6 @@
 """Loopback bridge to Home Assistant; never opens the camera or imports inference."""
 
+import os
 import shutil
 import time
 from typing import Literal
@@ -131,7 +132,7 @@ def create_app(settings: Settings) -> FastAPI:
         try:
             path = settings.storage.directory / "vision-preview.jpg"
             with path.open("rb") as stream:
-                if not 0 <= time.time() - path.stat().st_mtime <= 15:
+                if not 0 <= time.time() - os.fstat(stream.fileno()).st_mtime <= 15:
                     raise ValueError("Stale preview")
                 content = stream.read(2 * 1024 * 1024 + 1)
             if len(content) > 2 * 1024 * 1024 or not content.startswith(b"\xff\xd8"):
