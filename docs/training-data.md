@@ -40,6 +40,11 @@ remain `approved_for_training: false`; there is no automatic label export,
 training, deployment or public upload. Images of unchanged parking locations
 must not be treated as evidence that a car is present.
 
+After explicit human grading, the opt-in exporter can prepare a private YOLO
+bundle; it does not train or deploy. See [training and evaluation plan](training-plan.md)
+for the original class mapping, independent evaluation requirements and Windows
+GPU recipe. Unapproved or unresolved samples are rejected by the exporter.
+
 The one-day Codex review follow-up inspects new images every two hours. It stays
 quiet during routine progress, reports meaningful failures, and gives one final
 batch summary before pausing itself. It must not start a second batch. A future
